@@ -1,4 +1,4 @@
-name: '🔨 Infrastructure Configuring using Terraform on AWS' 
+name: '🔨 Infrastructure Configuring using Terraform on AWS'
 
 on: 
   workflow_dispatch:
@@ -17,13 +17,13 @@ env:
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
   TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+
 permissions:
   contents: read
 
-
 jobs:
   infrastructure-setup-using-terraform:
-    name: Terraform ${{ github.event.input.actions }}
+    name: Terraform ${{ github.event.inputs.action }}
     runs-on: ubuntu-24.04
     environment: production
 
@@ -36,26 +36,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Setting Up the Terraform
+      - name: Setting Up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.13.3"
           terraform_wrapper: true
-          cli_config_credentials_token: ${{ secrets. TF_API_TOKEN }}
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Initialising Terraform
+        run: terraform init
 
       - name: Cache Terraform
         uses: actions/cache@v4
         with:
           path: |
-            ~/.terraform.d/plugin-cache
             .terraform
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
           restore-keys: |
             ${{ runner.os }}-terraform-
           
-      - name: Initialising the Terraform
-        run: terraform init
-
       - name: Terraform Format Check
         run: terraform fmt -check --diff
 
@@ -70,6 +69,6 @@ jobs:
         if: ${{ github.event.inputs.action == 'apply' }}
         run: terraform apply -auto-approve
 
-      - name: Terraform destroy
+      - name: Terraform Destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
         run: terraform destroy -auto-approve
